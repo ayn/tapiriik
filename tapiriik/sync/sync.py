@@ -17,8 +17,9 @@ import logging.handlers
 import pytz
 import kombu
 import json
+import bisect
 
-# Set this up seperate from the logger used in this scope, so services logging messages are caught and logged into user's files.
+# Set this up separate from the logger used in this scope, so services logging messages are caught and logged into user's files.
 _global_logger = logging.getLogger("tapiriik")
 
 _global_logger.setLevel(logging.DEBUG)
@@ -62,6 +63,9 @@ def _packServiceException(step, e):
     if e.UserException:
         res["UserException"] = _packUserException(e.UserException)
     return res
+
+def _packException(step):
+    return {"Step": step, "Message": _formatExc(), "Timestamp": datetime.utcnow()}
 
 def _packUserException(userException):
     if userException:
@@ -423,7 +427,7 @@ class SynchronizationTask:
     def _accumulateActivities(self, conn, svcActivities, no_add=False):
         # Yep, abs() works on timedeltas
         activityStartLeeway = timedelta(minutes=3)
-        activityStartTZOffsetLeeway = timedelta(seconds=10)
+        activityStartTZOffsetLeeway = timedelta(minutes=1)
         timezoneErrorPeriod = timedelta(hours=38)
         from tapiriik.services.interchange import ActivityType
         for act in svcActivities:
@@ -436,8 +440,13 @@ class SynchronizationTask:
             if act.TZ and not hasattr(act.TZ, "localize"):
                 raise ValueError("Got activity with TZ type " + str(type(act.TZ)) + " instead of a pytz timezone")
             # Used to ensureTZ() right here - doubt it's needed any more?
-            existElsewhere = [
-                              x for x in self._activities if
+            # Binsearch to find which activities actually need individual attention.
+            # Otherwise it's O(mn^2).
+            # self._activities is sorted most recent first
+            relevantActivitiesStart = bisect.bisect_left(self._activities, act.StartTime + timezoneErrorPeriod)
+            relevantActivitiesEnd = bisect.bisect_right(self._activities, act.StartTime - timezoneErrorPeriod, lo=relevantActivitiesStart)
+            extantActIter = (
+                              x for x in (self._activities[idx] for idx in range(relevantActivitiesStart, relevantActivitiesEnd)) if
                               (
                                   # Identical
                                   x.UID == act.UID
@@ -478,9 +487,14 @@ class SynchronizationTask:
                                 and
                                 # Prevents closely-spaced activities of known different type from being lumped together - esp. important for manually-enetered ones
                                 (x.Type == ActivityType.Other or act.Type == ActivityType.Other or x.Type == act.Type or ActivityType.AreVariants([act.Type, x.Type]))
-                              ]
-            if len(existElsewhere) > 0:
-                existingActivity = existElsewhere[0]
+                              )
+
+            try:
+                existingActivity = next(extantActIter)
+            except StopIteration:
+                existingActivity = None
+
+            if existingActivity:
                 # we don't merge the exclude values here, since at this stage the services have the option of just not returning those activities
                 if act.TZ is not None and existingActivity.TZ is None:
                     existingActivity.TZ = act.TZ
@@ -519,7 +533,7 @@ class SynchronizationTask:
                 act.UIDs = existingActivity.UIDs  # stop the circular inclusion, not that it matters
                 continue
             if not no_add:
-                self._activities.append(act)
+                bisect.insort_left(self._activities, act)
 
     def _determineEligibleRecipientServices(self, activity, recipientServices):
         from tapiriik.auth import User
@@ -643,7 +657,7 @@ class SynchronizationTask:
             if not _isWarning(e):
                 return
         except Exception as e:
-            self._syncErrors[conn._id].append({"Step": SyncStep.List, "Message": _formatExc()})
+            self._syncErrors[conn._id].append(_packException(SyncStep.List))
             self._excludeService(conn, UserException(UserExceptionType.ListingError))
             return
         self._accumulateExclusions(conn, svcExclusions)
@@ -761,7 +775,7 @@ class SynchronizationTask:
                 activity.Record.MarkAsNotPresentOtherwise(e.UserException)
                 continue
             except Exception as e:
-                packed_exc = {"Step": SyncStep.Download, "Message": _formatExc()}
+                packed_exc = _packException(SyncStep.Download)
 
                 activity.Record.IncrementFailureCount(dlSvcRecord)
                 if activity.Record.GetFailureCount(dlSvcRecord) >= dlSvc.DownloadRetryCount:
@@ -814,7 +828,7 @@ class SynchronizationTask:
                 activity.Record.MarkAsNotPresentOn(destinationServiceRec, e.UserException if e.UserException else UserException(UserExceptionType.UploadError))
                 raise UploadException()
         except Exception as e:
-            packed_exc = {"Step": SyncStep.Upload, "Message": _formatExc()}
+            packed_exc = _packException(SyncStep.Upload)
 
             activity.Record.IncrementFailureCount(destinationServiceRec)
             if activity.Record.GetFailureCount(destinationServiceRec) >= destSvc.UploadRetryCount:

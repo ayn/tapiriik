@@ -11,6 +11,7 @@ function ActivitiesController($scope, $http) {
     var type = presc.Exception.Type;
     var explanations = {
       "auth": "The credentials you entered for %(service) are no longer functional - visit the dashboard to re-authorize tapiriik.",
+      "renew_password": "The credentials you entered for %(service) are no longer functional - visit the dashboard to re-authorize tapiriik.",
       "full": "Your %(service) account is full. Make some space available then visit the dashboard to re-synchronize.",
       "expired": "Your %(service) account has expired. Once it's back in action, visit the dashboard to re-synchronize.",
       "unpaid": "You must have a paid account with %(service) in order to synchronize activities.",
@@ -87,7 +88,7 @@ function SyncSettingsController($scope, $http, $window){
     }
   });
   $scope.sync_suppress_options = [{k: true, v: "manually"}, {k: false, v: "automatically"}];
-  $scope.sync_delay_options = [{k: 0, v: "as soon as possible"}, {k: 20*60, v: "20 minutes"}, {k: 60*60, v: "1 hour"}, {k: 60*60*24, v: "1 day"}];
+  $scope.sync_delay_options = [{k: 0, v: "as soon as possible"}, {k: 20*60, v: "20 minutes"}, {k: 60*60, v: "1 hour"}, {k: 60*60*3, v: "3 hours"}, {k: 60*60*6, v: "6 hours"}, {k: 60*60*12, v: "12 hours"}, {k: 60*60*24, v: "1 day"}];
   $scope.save = function(){
     if (isNaN(Date.parse($scope.sync_skip_before_entry)) && $scope.sync_skip_before_entry) {
       alert("Double-check that date");

@@ -47,13 +47,15 @@ class StravaService(ServiceBase):
         ActivityType.Swimming: "Swim",
         ActivityType.Gym: "Workout",
         ActivityType.Rowing: "Rowing",
-        ActivityType.Elliptical: "Elliptical"
+        ActivityType.Elliptical: "Elliptical",
+        ActivityType.RollerSkiing: "RollerSki"
     }
 
     # For mapping Strava->common
     _reverseActivityTypeMappings = {
         "Ride": ActivityType.Cycling,
         "VirtualRide": ActivityType.Cycling,
+        "EBikeRide": ActivityType.Cycling,
         "MountainBiking": ActivityType.MountainBiking,
         "Run": ActivityType.Running,
         "Hike": ActivityType.Hiking,
@@ -62,11 +64,16 @@ class StravaService(ServiceBase):
         "CrossCountrySkiing": ActivityType.CrossCountrySkiing,
         "NordicSki": ActivityType.CrossCountrySkiing,
         "BackcountrySki": ActivityType.DownhillSkiing,
+        "Snowboard": ActivityType.Snowboarding,
         "Swim": ActivityType.Swimming,
         "IceSkate": ActivityType.Skating,
         "Workout": ActivityType.Gym,
         "Rowing": ActivityType.Rowing,
-        "Elliptical": ActivityType.Elliptical
+        "Kayaking": ActivityType.Rowing,
+        "Canoeing": ActivityType.Rowing,
+        "StandUpPaddling": ActivityType.Rowing,
+        "Elliptical": ActivityType.Elliptical,
+        "RollerSki": ActivityType.RollerSkiing
     }
 
     SupportedActivities = list(_activityTypeMappings.keys())

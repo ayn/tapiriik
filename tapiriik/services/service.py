@@ -44,6 +44,7 @@ class Service:
             Strava, # No laps
             Endomondo, # No laps, no cadence
             RunKeeper, # No laps, no cadence, no power
+            BeginnerTriathlete, # No temperature
             Motivato,
             NikePlus
         ] + PRIVATE_SERVICES
@@ -54,9 +55,6 @@ class Service:
         for itm in Service.List():
             itm.WebInit()
             itm.UserDisconnectURL = WEB_ROOT + reverse("auth_disconnect", kwargs={"service": itm.ID})
-
-    def GetServiceRecordWithAuthDetails(service, authDetails):
-        return ServiceRecord(db.connections.find_one({"Service": service.ID, "Authorization": authDetails}))
 
     def GetServiceRecordByID(uid):
         return ServiceRecord(db.connections.find_one({"_id": ObjectId(uid)}))

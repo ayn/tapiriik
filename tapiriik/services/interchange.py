@@ -21,6 +21,7 @@ class ActivityType:  # taken from RK API docs. The text values have no meaning e
     Elliptical = "Elliptical"
     Gym = "Gym"
     Climbing = "Climbing"
+    RollerSkiing = "RollerSkiing"
     Other = "Other"
 
     def List():
@@ -331,6 +332,27 @@ class Activity:
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    # We define ascending as most-recent first.
+    # For simplicity, we compare without timezones.
+    # The only place this ordering is (intentionally...) used, it doesn't matter.
+    def __gt__(self, other):
+        try:
+            return self.StartTime.replace(tzinfo=None) < other.StartTime.replace(tzinfo=None)
+        except AttributeError:
+            return self.StartTime.replace(tzinfo=None) < other.replace(tzinfo=None)
+
+    def __ge__(self, other):
+        try:
+            return self.StartTime.replace(tzinfo=None) <= other.StartTime.replace(tzinfo=None)
+        except AttributeError:
+            return self.StartTime.replace(tzinfo=None) <= other.replace(tzinfo=None)
+
+    def __lt__(self, other):
+        return not self.__ge__(other)
+
+    def __le__(self, other):
+        return not self.__gt__(other)
 
 
 class UploadedActivity (Activity):
