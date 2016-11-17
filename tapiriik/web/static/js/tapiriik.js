@@ -428,7 +428,8 @@ tapiriik.OpenDropboxConfigDialog = function(){
 		var fstack = $("#folderStack", configPanel);
 		$("<a class=\"folder inactive\"/>").text("/").appendTo(fstack);
 		$("<a class=\"folder inactive\"/>").text("Apps").appendTo(fstack);
-		$("<a class=\"folder inactive\"/>").text("tapiriik").appendTo(fstack);
+		$("<a class=\"folder inactive\"/>").text("/").appendTo(fstack);
+		$("<a class=\"folder inactive\"/>").text("sfrunners tapiriik").appendTo(fstack);
 	}
 };
 
