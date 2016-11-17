@@ -1,6 +1,8 @@
-*.log
+*.log*
 *.pot
 *.pyc
 local_settings.py
 *.sublime-workspace
 private/
+C:/
+log
