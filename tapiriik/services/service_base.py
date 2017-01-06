@@ -40,6 +40,7 @@ class ServiceBase:
     ReceivesActivities = True # Any at all?
     ReceivesStationaryActivities = True # Manually-entered?
     ReceivesNonGPSActivitiesWithOtherSensorData = True # Trainer-ish?
+    SuppliesActivities = True
 
 
     SupportsActivityDeletion = False
@@ -136,6 +137,10 @@ class ServiceBase:
 
     def ExternalIDsForPartialSyncTrigger(self, req):
         raise NotImplementedError
+
+    def PartialSyncTriggerGET(self, req):
+        from django.http import HttpResponse
+        return HttpResponse(status=204)
 
     def ConfigurationUpdating(self, serviceRecord, newConfig, oldConfig):
         pass
