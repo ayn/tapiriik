@@ -14,6 +14,8 @@ from tapiriik.services.SportTracks import SportTracksService
 SportTracks = SportTracksService()
 from tapiriik.services.RideWithGPS import RideWithGPSService
 RideWithGPS = RideWithGPSService()
+from tapiriik.services.TrainAsONE import TrainAsONEService
+TrainAsONE = TrainAsONEService()
 from tapiriik.services.TrainingPeaks import TrainingPeaksService
 TrainingPeaks = TrainingPeaksService()
 from tapiriik.services.Motivato import MotivatoService
@@ -28,6 +30,8 @@ from tapiriik.services.Smashrun import SmashrunService
 Smashrun = SmashrunService()
 from tapiriik.services.BeginnerTriathlete import BeginnerTriathleteService
 BeginnerTriathlete = BeginnerTriathleteService()
+from tapiriik.services.Pulsstory import PulsstoryService
+Pulsstory = PulsstoryService()
 
 PRIVATE_SERVICES = []
 try:

@@ -36,6 +36,7 @@ class RunKeeperService(ServiceBase):
                          "Wheelchair": ActivityType.Wheelchair,
                          "Rowing": ActivityType.Rowing,
                          "Elliptical": ActivityType.Elliptical,
+                         "Strength Training": ActivityType.StrengthTraining,
                          "Other": ActivityType.Other}
     SupportedActivities = list(_activityMappings.values())
 
@@ -71,7 +72,8 @@ class RunKeeperService(ServiceBase):
         pass
 
     def _apiHeaders(self, serviceRecord):
-        return {"Authorization": "Bearer " + serviceRecord.Authorization["Token"]}
+        return {"Authorization": "Bearer " + serviceRecord.Authorization["Token"],
+                "Accept-Charset": "UTF-8"}
 
     def _getAPIUris(self, serviceRecord):
         if hasattr(self, "_uris"):  # cache these for the life of the batch job at least? hope so
@@ -251,8 +253,14 @@ class RunKeeperService(ServiceBase):
             record["total_calories"] = activity.Stats.Energy.asUnits(ActivityStatisticUnit.Kilocalories).Value
         if activity.Stats.Distance.Value is not None:
             record["total_distance"] = activity.Stats.Distance.asUnits(ActivityStatisticUnit.Meters).Value
-        if activity.Name:
-            record["notes"] = activity.Name  # not symetric, but better than nothing
+
+        if activity.Name and activity.Notes:
+            record["notes"] = activity.Name + " - " + activity.Notes
+        elif activity.Notes:
+            record["notes"] = activity.Notes
+        elif activity.Name:
+            record["notes"] = activity.Name
+
         if activity.Private:
             record["share"] = "Just Me"
 
